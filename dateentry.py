@@ -268,3 +268,11 @@ class DateTextEntry(ctk.CTkEntry):
         date = self.date_str.split(self._delimiter)
         date = tuple(int(x) for x in date)
         return date
+
+    def reset(self):
+        """
+        Clears the Entry. Resets date_str to ""
+        """
+        self.delete(0, END)
+        self.date_str = ""
+        self.input_str = ""
