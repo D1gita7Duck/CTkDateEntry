@@ -6,13 +6,7 @@ def _is_leap(year):
     return year % 4 == 0 and (year % 100 != 0 or year % 400 == 0)
 
 class DateTextEntry(ctk.CTkEntry):
-    """
-    Spawns a CtkEntry to take date string.\n
-    date_format takes 0, 1, 2, 3, 4
-    corresponding to DD/MM/YY, DD/MM/YYYY, MM/DD/YY, MM/DD/YYYY, YYYY/MM/DD\n
-    custom delimiter can be given using delimiter = <?>. Placeholder text is automatically altered on passing delimiter.
-    ValueError is raised on giving invalid date.
-    """
+    
     def __init__(self, 
                  master,
                  width = 140,
@@ -29,7 +23,17 @@ class DateTextEntry(ctk.CTkEntry):
                  date_format : int = 0,
                  delimiter : str = "/",
                  font = None, 
-                 state = NORMAL, **kwargs):
+                 state = NORMAL, 
+                 invalid_date_cmd = None, **kwargs):
+        """
+        Spawns a CtkEntry to take date string.\n
+        date_format takes 0, 1, 2, 3, 4
+        corresponding to DD/MM/YY, DD/MM/YYYY, MM/DD/YY, MM/DD/YYYY, YYYY/MM/DD\n
+        custom delimiter can be given using delimiter = <?>. Placeholder text is automatically altered on passing delimiter.\n
+        ValueError is raised on giving invalid date. Error can be caught by passing suitable function to invalid_date_cmd.\n
+        String Values are passed to invalid_date_cmd in the format "Error {int} -> ..." with int corresponding to
+        Incomplete date = -1, Bad date input = 1, Bad month input = 2, Bad February Date = 3
+        """
         if (date_format not in range(0, 5)):
             raise ValueError(f'Format : {self._placeholder_text} ' + "Bad input for date_format. Must be one of the integers 0, 1, 2, 3, 4")
         if (placeholder_text is None):
@@ -48,6 +52,7 @@ class DateTextEntry(ctk.CTkEntry):
         self._placeholder_text = placeholder_text
         self._date_format = date_format
         self._delimiter = delimiter
+        self._invalid_date_cmd = invalid_date_cmd
         self._digit_count = 0
         self.date_str = ""
         self.input_str = ""
@@ -191,63 +196,68 @@ class DateTextEntry(ctk.CTkEntry):
         Checks if given input is valid for a given date format.\n
         If it is invalid, ValueError is raised with appropriate message.
         """
-        if (self.full == False):
-            raise ValueError(f'Format : {self._placeholder_text} ' + "Given Date is incomplete")
-        date = self.get()
-        if (self._date_format == 0 or self._date_format == 1):
-            # check month
-            if (date[1] > 12 or date[1] < 1):
-                raise ValueError(f'Format : {self._placeholder_text} ' + "Bad input for month")
-            # check date for corresponding month
-            if (date[1] in self._30_days):
-                if (date[0] > 30 or date[0] < 1):
-                    raise ValueError(f'Format : {self._placeholder_text} ' + "Bad input for date")
-            elif (date[1] in self._31_days):
-                if (date[0] > 31 or date[0] < 1):
-                    raise ValueError(f'Format : {self._placeholder_text} ' + "Bad input for date")
-            elif (_is_leap(date[2]) and date[1] == 2):
-                if (date[0] > 29 or date[0] < 1):
-                    raise ValueError(f'Format : {self._placeholder_text} ' + "Bad input for February date")
-            elif (date[1] == 2):
-                if (date[0] > 28 or date[0] < 1):
-                    raise ValueError(f'Format : {self._placeholder_text} ' + "Bad input for February date")
-        
-        elif (self._date_format == 2 or self._date_format == 3):
-            # check month
-            if (date[0] > 12 or date[0] < 1):
-                raise ValueError(f'Format : {self._placeholder_text} ' + "Bad input for month")
-            # check date for corresponding month
-            if (date[0] in self._30_days):
-                if (date[1] > 30 or date[1] < 1):
-                    raise ValueError(f'Format : {self._placeholder_text} ' + "Bad input for date")
-            elif (date[0] in self._31_days):
-                if (date[1] > 31 or date[1] < 1):
-                    raise ValueError(f'Format : {self._placeholder_text} ' + "Bad input for date")
-            elif (_is_leap(date[2]) and date[0] == 2):
-                if (date[1] > 29 or date[1] < 1):
-                    raise ValueError(f'Format : {self._placeholder_text} ' + "Bad input for February date")
-            elif (date[0] == 2):
-                if (date[1] > 28 or date[1] < 1):
-                    raise ValueError(f'Format : {self._placeholder_text} ' + "Bad input for February date")
-        else:
-            print(date, date[0]%4, date[0]%400, date[0]%100, date[1] == 2)
-            # check month
-            if (date[1] > 12 or date[1] < 1):
-                raise ValueError(f'Format : {self._placeholder_text} ' + "Bad input for month")
-            # check date for corresponding month
-            if (date[1] in self._30_days):
-                if (date[2] > 30 or date[2] < 1):
-                    raise ValueError(f'Format : {self._placeholder_text} ' + "Bad input for date")
-            elif (date[1] in self._31_days):
-                if (date[2] > 31 or date[2] < 1):
-                    raise ValueError(f'Format : {self._placeholder_text} ' + "Bad input for date")
-            elif (_is_leap(date[0]) and date[1] == 2):
-                if (date[2] > 29 or date[2] < 1):
-                    raise ValueError(f'Format : {self._placeholder_text} ' + "Bad input for February date")
-            elif (date[1] == 2):
-                if (date[2] > 28 or date[2] < 1):
-                    raise ValueError(f'Format : {self._placeholder_text} ' + "Bad input for February date")
-
+        try:
+            if (self.full == False):
+                raise ValueError(f'Error -1 -> Format : {self._placeholder_text} ' + "Given Date is incomplete")
+            date = self.get()
+            if (self._date_format == 0 or self._date_format == 1):
+                # check month
+                if (date[1] > 12 or date[1] < 1):
+                    raise ValueError(f'Error 2 -> Format : {self._placeholder_text} ' + "Bad input for month")
+                # check date for corresponding month
+                if (date[1] in self._30_days):
+                    if (date[0] > 30 or date[0] < 1):
+                        raise ValueError(f'Error 2 -> Format : {self._placeholder_text} ' + "Bad input for date")
+                elif (date[1] in self._31_days):
+                    if (date[0] > 31 or date[0] < 1):
+                        raise ValueError(f'Error 1 -> Format : {self._placeholder_text} ' + "Bad input for date")
+                elif (_is_leap(date[2]) and date[1] == 2):
+                    if (date[0] > 29 or date[0] < 1):
+                        raise ValueError(f'Error 3 -> Format : {self._placeholder_text} ' + "Bad input for February date")
+                elif (date[1] == 2):
+                    if (date[0] > 28 or date[0] < 1):
+                        raise ValueError(f'Error 3 -> Format : {self._placeholder_text} ' + "Bad input for February date")
+            
+            elif (self._date_format == 2 or self._date_format == 3):
+                # check month
+                if (date[0] > 12 or date[0] < 1):
+                    raise ValueError(f'Error 2 -> Format : {self._placeholder_text} ' + "Bad input for month")
+                # check date for corresponding month
+                if (date[0] in self._30_days):
+                    if (date[1] > 30 or date[1] < 1):
+                        raise ValueError(f'Error 1 -> Format : {self._placeholder_text} ' + "Bad input for date")
+                elif (date[0] in self._31_days):
+                    if (date[1] > 31 or date[1] < 1):
+                        raise ValueError(f'Error 1 -> Format : {self._placeholder_text} ' + "Bad input for date")
+                elif (_is_leap(date[2]) and date[0] == 2):
+                    if (date[1] > 29 or date[1] < 1):
+                        raise ValueError(f'Error 3 -> Format : {self._placeholder_text} ' + "Bad input for February date")
+                elif (date[0] == 2):
+                    if (date[1] > 28 or date[1] < 1):
+                        raise ValueError(f'Error 3 -> Format : {self._placeholder_text} ' + "Bad input for February date")
+            else:
+                print(date, date[0]%4, date[0]%400, date[0]%100, date[1] == 2)
+                # check month
+                if (date[1] > 12 or date[1] < 1):
+                    raise ValueError(f'Error 2 -> Format : {self._placeholder_text} ' + "Bad input for month")
+                # check date for corresponding month
+                if (date[1] in self._30_days):
+                    if (date[2] > 30 or date[2] < 1):
+                        raise ValueError(f'Error 1 -> Format : {self._placeholder_text} ' + "Bad input for date")
+                elif (date[1] in self._31_days):
+                    if (date[2] > 31 or date[2] < 1):
+                        raise ValueError(f'Error 1 -> Format : {self._placeholder_text} ' + "Bad input for date")
+                elif (_is_leap(date[0]) and date[1] == 2):
+                    if (date[2] > 29 or date[2] < 1):
+                        raise ValueError(f'Error 3 -> Format : {self._placeholder_text} ' + "Bad input for February date")
+                elif (date[1] == 2):
+                    if (date[2] > 28 or date[2] < 1):
+                        raise ValueError(f'Error 3 -> Format : {self._placeholder_text} ' + "Bad input for February date")
+        except ValueError as msg:
+            if self._invalid_date_cmd is not None:
+                self._invalid_date_cmd(msg)
+            else:
+                raise ValueError(msg)
 
     def get(self) -> tuple[int, int, int]:
         """
