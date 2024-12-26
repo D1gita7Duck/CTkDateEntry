@@ -259,7 +259,7 @@ class DateTextEntry(ctk.CTkEntry):
             else:
                 raise ValueError(msg)
 
-    def get(self) -> tuple[int, int, int]:
+    def get_int(self) -> tuple[int, int, int]:
         """
         Returns tuple of three integers in given date format
         """
@@ -268,6 +268,11 @@ class DateTextEntry(ctk.CTkEntry):
         date = self.date_str.split(self._delimiter)
         date = tuple(int(x) for x in date)
         return date
+    
+    def get_str(self) -> str:
+        if (self.full == False):
+            raise ValueError(f'Format : {self._placeholder_text} ' + "Given Date is incomplete")
+        return self.date_str
 
     def reset(self):
         """
