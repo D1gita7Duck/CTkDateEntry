@@ -281,3 +281,5 @@ class DateTextEntry(ctk.CTkEntry):
         self.delete(0, END)
         self.date_str = ""
         self.input_str = ""
+        self.full = False
+        self._digit_count = 0
