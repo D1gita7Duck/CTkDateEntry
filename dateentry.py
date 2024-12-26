@@ -199,7 +199,7 @@ class DateTextEntry(ctk.CTkEntry):
         try:
             if (self.full == False):
                 raise ValueError(f'Error -1 -> Format : {self._placeholder_text} ' + "Given Date is incomplete")
-            date = self.get()
+            date = self.get_int()
             if (self._date_format == 0 or self._date_format == 1):
                 # check month
                 if (date[1] > 12 or date[1] < 1):
