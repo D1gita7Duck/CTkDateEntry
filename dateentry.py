@@ -62,10 +62,13 @@ class DateTextEntry(ctk.CTkEntry):
 
         if (date_format == 0 or date_format == 2):
             self.bind("<KeyRelease>", self.control_entry02)
+            self._reqd_digits = 6
         elif (date_format == 1 or date_format == 3):
             self.bind("<KeyRelease>", self.control_entry13)
+            self._reqd_digits = 8
         else:
             self.bind("<KeyRelease>", self.control_entry4)
+            self._reqd_digits = 8
     
 
     def control_entry02(self, event : Event):
@@ -283,3 +286,20 @@ class DateTextEntry(ctk.CTkEntry):
         self.input_str = ""
         self.full = False
         self._digit_count = 0
+    
+    def write(self, string : str):
+        """
+        Writes a given date into the entry box. Str must be with delimiter and of correct format
+        """
+        self.reset()
+        self.insert(0, string)
+        self.date_str = string
+        self.input_str = string
+        self._digit_count = 0
+        for i in string:
+            if i.isdigit():
+                self._digit_count += 1
+        if self._digit_count == self._reqd_digits:
+            self.full = True
+        else:
+            self.full = False
