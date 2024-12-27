@@ -286,7 +286,6 @@ class DateTextEntry(ctk.CTkEntry):
         self.input_str = ""
         self.full = False
         self._digit_count = 0
-        self._activate_placeholder()
     
     def write(self, string : str):
         """
